@@ -1,6 +1,7 @@
 import React, { useRef, useState, useContext } from 'react';
 import { store } from './scene-context';
 import './control-panel.css';
+import { randomUuid } from './uuid.js';
 
 
 const ScaleInput = (props) => {
@@ -37,26 +38,26 @@ const ControlPanel = (props) => {
     const {state, dispatch } = useContext(store);
 
 
-    const inputs = state.boxes.map((box, i) => 
-		<div key={box.name}>
+    const inputs = state.boxes.filter(box => box.id === state.selected).map((box, i) =>
+		<div key={box.id}>
 		  <h4>{box.name}</h4>
 		  <div>
 		  	<h5>Position</h5>
-			  <ScaleInput box={box} property="position" dimension="x" index={i} />
-			  <ScaleInput box={box} property="position" dimension="y" index={i} />
-			  <ScaleInput box={box} property="position" dimension="z" index={i} />
+			  <ScaleInput box={box} property="position" dimension="x" />
+			  <ScaleInput box={box} property="position" dimension="y" />
+			  <ScaleInput box={box} property="position" dimension="z" />
 		  </div>
 		  <div>
 		  	<h5>Scale</h5>
-			  <ScaleInput box={box} property="scale" dimension="x" index={i} />
-			  <ScaleInput box={box} property="scale" dimension="y" index={i} />
-			  <ScaleInput box={box} property="scale" dimension="z" index={i} />
+			  <ScaleInput box={box} property="scale" dimension="x" />
+			  <ScaleInput box={box} property="scale" dimension="y" />
+			  <ScaleInput box={box} property="scale" dimension="z" />
 		  </div>
-		</div>     
+		</div>
     )
 
     const addBox = () => {
-    	dispatch({type: "ADD_BOX", payload: { name: 'New Box', position: { x: 0, y: 0, z: 0 }, scale: { x: 1, y: 1, z: 1 } }})
+    	dispatch({type: "ADD_BOX", payload: { name: 'New Box', id: randomUuid(), position: { x: 0, y: 0, z: 0 }, scale: { x: 1, y: 1, z: 1 } }})
     }
 
 	return (
