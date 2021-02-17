@@ -5,11 +5,43 @@ import { Mesh } from '@babylonjs/core/Meshes/mesh'
 import {store} from './scene-context';
 import * as Earcut from 'earcut';
 import './three-dee-view.css';
+import {toHoles, toScenePosition, toShape} from "./wall-tools";
 
 const GROUND_SIZE = 1000;
 
 const DefaultScale = new Vector3(1, 1, 1);
 const BiggerScale = new Vector3(1.25, 1.25, 1.25);
+
+const OuterWall = (props) => {
+    return (
+        <babylon-polygon
+            name={props.box.name}
+            shape={toShape(props.box)}
+            holes={toHoles(props.box)}
+            sideOrientation= {Mesh.DOUBLESIDE}
+            earcutInjection={Earcut}
+        >
+            <standardMaterial name={`${props.box.name}-mat`} diffuseColor={Color3.FromHexString(props.box.exteriorColor)}
+                              specularColor={Color3.Black()}/>
+        </babylon-polygon>
+    )
+}
+
+const InnerWall = (props) => {
+    return (
+        <babylon-polygon
+            name={props.box.name}
+            shape={toShape(props.box)}
+            holes={toHoles(props.box)}
+            sideOrientation= {Mesh.DOUBLESIDE}
+            position={new Vector3(0, props.box.size.width, 0)}
+            earcutInjection={Earcut}
+        >
+            <standardMaterial name={`${props.box.name}-mat`} diffuseColor={Color3.FromHexString(props.box.interiorColor)}
+                              specularColor={Color3.Black()}/>
+        </babylon-polygon>
+    )
+}
 
 const SpinningBox = (props) => {
     // access Babylon scene objects with same React hook as regular DOM elements
@@ -25,11 +57,15 @@ const SpinningBox = (props) => {
         boxRef
     );
 
+    useBeforeRender((scene) => {
+
+    });
+
     useEffect(() => {
         if (boxRef.current) {
             // boxRef.current.setPivotPoint(new Vector3(-(props.size.length / 2), 0, 0));
-            boxRef.current.rotation.y = props.rotation;
-            console.log("Pivot point set");
+            // boxRef.current.rotation.y = props.rotation;
+            // console.log("Pivot point set");
         }
     })
 
@@ -40,16 +76,6 @@ const SpinningBox = (props) => {
         boxRef
     );
 
-    // This will rotate the box on every Babylon frame.
-    const rpm = 5;
-    // useBeforeRender((scene) => {
-    //   if (boxRef.current) {
-    //     // Delta time smoothes the animation.
-    //     var deltaTimeInMillis = scene.getEngine().getDeltaTime();
-    //     boxRef.current.rotation.y += ((rpm / 60) * Math.PI * 2 * (deltaTimeInMillis / 1000));
-    //   }
-    // });
-
     const validateDrag = (targetPosition) => {
         props.dispatch({
             type: 'UPDATE_BOX',
@@ -57,7 +83,7 @@ const SpinningBox = (props) => {
                 index: props.index,
                 property: 'position',
                 dimension: 'x',
-                value: targetPosition.x - (props.size.length / 2)
+                value: targetPosition.x - (props.box.size.length / 2)
             }
         })
         props.dispatch({
@@ -75,7 +101,7 @@ const SpinningBox = (props) => {
                 index: props.index,
                 property: 'position',
                 dimension: 'z',
-                value: targetPosition.y - (props.size.height / 2)
+                value: targetPosition.y - (props.box.size.height / 2)
             }
         })
 
@@ -83,21 +109,14 @@ const SpinningBox = (props) => {
     }
 
     return (
-        <extrudePolygon
-            name={props.name}
+        <mesh
             ref={boxRef}
-            shape={props.shape}
-            holes={props.holes}
-            depth={props.size.width}
-            position={props.position}
-            sideOrientation= {Mesh.DOUBLESIDE}
-            earcutInjection={Earcut}
+            position={toScenePosition(props.box)}
             rotation-x={-Math.PI / 2}
-        >
-            <standardMaterial name={`${props.name}-mat`} diffuseColor={hovered ? props.hoveredColor : props.color}
-                specularColor={Color3.Black()}/>
-            <pointerDragBehavior dragPlaneNormal={new Vector3(0, 1, 0)} validateDrag={validateDrag}/>
-        </extrudePolygon>
+            rotation-y={props.box.rotation * Math.PI / 180}>
+            <InnerWall box={props.box} />
+            <OuterWall box={props.box} />
+        </mesh>
 
     );
 
@@ -114,51 +133,10 @@ const SpinningBox = (props) => {
 export const SceneWithSpinningBoxes = (props) => {
     const {state, dispatch} = useContext(store);
 
-    const toScenePosition = (box) => {
-        return new Vector3(
-            box.position.x,
-            box.position.z + (box.size.height / 2),
-            -box.position.y
-        )
-    }
-
-    const toShape = (box) => {
-        return [
-            new Vector3(0, 0, 0),
-            new Vector3(box.size.length, 0, 0),
-            new Vector3(box.size.length, 0, box.size.height),
-            new Vector3(0, 0, box.size.height)
-        ]
-    }
-
-    const toHoles = (box) => {
-        return box.doors.map(door => [
-            new Vector3(door.position, 0, 0),
-            new Vector3(door.position, 0, door.height),
-            new Vector3(door.position + door.width, 0, door.height),
-            new Vector3(door.position + door.width, 0, 0),
-        ]).concat(
-            box.windows.map(window => [
-                new Vector3(window.position, 0, window.elevation),
-                new Vector3(window.position, 0, window.elevation + window.height),
-                new Vector3(window.position + window.width, 0, window.elevation + window.height),
-                new Vector3(window.position + window.width, 0, window.elevation)
-            ])
-        )
-    }
 
     const boxes = state.boxes.map((box, i) =>
         <SpinningBox
-            name={box.name}
-            key={box.id}
-            id={box.id}
-            size={box.size}
-            rotation={box.rotation * Math.PI / 180}
-            position={toScenePosition(box)}
-            color={Color3.FromHexString('#EEB5EB')}
-            hoveredColor={Color3.FromHexString('#C26DBC')}
-            shape={toShape(box)}
-            holes={toHoles(box)}
+            box={box}
             dispatch={dispatch}
             index={i}
         />
@@ -170,6 +148,7 @@ export const SceneWithSpinningBoxes = (props) => {
                 <arcRotateCamera name="camera1" target={new Vector3(4, 0, -3)} alpha={1.5 * Math.PI} beta={0}
                                  radius={8}/>
                 <hemisphericLight name='light1' intensity={0.7} direction={Vector3.Up()}/>
+                <pointLight name="Omni" position={new Vector3(20, 100, 5)} />
                 <ground name='ground' width={GROUND_SIZE} height={GROUND_SIZE} subdivisions={1}>
                     <standardMaterial name='groundMat' specularColor={Color3.Black()}/>
                 </ground>

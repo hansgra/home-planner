@@ -18,12 +18,11 @@ export const KonvaScene = (props) => {
                         width={box.size.length * 50}
                         height={box.size.width * 50}
                         rotation={box.rotation}
-                        fill="#89b717"
-                        opacity={0.8}
+                        fill="#9b9b9b"
+                        stroke="#000000"
+                        strokeWidth={1}
+                        opacity={1}
                         draggable
-                        shadowColor="black"
-                        shadowBlur={10}
-                        shadowOpacity={0.6}
 
                         onDragMove={e => {
                             dispatch({
