@@ -6,7 +6,7 @@ export const KonvaScene = (props) => {
     const {state, dispatch } = useContext(store);
 
     return (
-        <Stage width={window.innerWidth} height={window.innerHeight}>
+        <Stage width={600} height={600}>
             <Layer>
                 <Text text="Try to drag a star" />
                 {state.boxes.map((box, i) => (

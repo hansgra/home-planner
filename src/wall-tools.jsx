@@ -17,6 +17,24 @@ const toShape = (box) => {
     ]
 }
 
+const toWallBottom = (box) => {
+    return [
+        new Vector3(0, 0, 0),
+        new Vector3(box.size.length, 0, 0),
+        new Vector3(box.size.length, 0, box.size.width),
+        new Vector3(0, 0,  box.size.width)
+    ]
+}
+
+const toWallSide = (box) => {
+    return [
+        new Vector3(0, 0, 0),
+        new Vector3(box.size.height, 0, 0),
+        new Vector3(box.size.height, 0, box.size.width),
+        new Vector3(0, 0,  box.size.width)
+    ]
+}
+
 const toHoles = (box) => {
     return box.doors.map(door => [
         new Vector3(door.position, 0, 0),
@@ -33,4 +51,4 @@ const toHoles = (box) => {
     )
 }
 
-export { toShape, toScenePosition, toHoles }
+export { toShape, toScenePosition, toHoles, toWallBottom, toWallSide }

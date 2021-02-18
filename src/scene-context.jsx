@@ -42,7 +42,7 @@ const initialState = {
           windows: [],
           interiorColor: '#F0EAD6',
           exteriorColor: '#EEB5EB' },
-      { name: 'Wall7', id: randomUuid(), position: { x: 7.928, y: 2.574, z: 0 }, size: { width: .10, length: 3.558, height: 2.6 }, rotation: 180,
+      { name: 'Wall7', id: randomUuid(), position: { x: 7.928, y: 2.574, z: 0 }, size: { width: .10, length: 3.742, height: 2.6 }, rotation: 180,
           doors: [],
           windows: [],
           interiorColor: '#F0EAD6',

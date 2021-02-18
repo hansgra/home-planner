@@ -5,12 +5,9 @@ import { Mesh } from '@babylonjs/core/Meshes/mesh'
 import {store} from './scene-context';
 import * as Earcut from 'earcut';
 import './three-dee-view.css';
-import {toHoles, toScenePosition, toShape} from "./wall-tools";
+import {toHoles, toScenePosition, toShape, toWallBottom, toWallSide} from "./wall-tools";
 
 const GROUND_SIZE = 1000;
-
-const DefaultScale = new Vector3(1, 1, 1);
-const BiggerScale = new Vector3(1.25, 1.25, 1.25);
 
 const OuterWall = (props) => {
     return (
@@ -38,6 +35,72 @@ const InnerWall = (props) => {
             earcutInjection={Earcut}
         >
             <standardMaterial name={`${props.box.name}-mat`} diffuseColor={Color3.FromHexString(props.box.interiorColor)}
+                              specularColor={Color3.Black()}/>
+        </babylon-polygon>
+    )
+}
+
+const WallTop = (props) => {
+    return (
+        <babylon-polygon
+            name={props.box.name}
+            shape={toWallBottom(props.box)}
+            sideOrientation= {Mesh.DOUBLESIDE}
+            position={new Vector3(0, 0, props.box.size.height)}
+            rotation-x={-Math.PI / 2}
+            earcutInjection={Earcut}
+        >
+            <standardMaterial name={`${props.box.name}-mat`} diffuseColor={Color3.FromHexString(props.box.interiorColor)}
+                              specularColor={Color3.Black()}/>
+        </babylon-polygon>
+    )
+}
+
+const WallBottom = (props) => {
+    return (
+        <babylon-polygon
+            name={props.box.name}
+            shape={toWallBottom(props.box)}
+            holes={[]}
+            sideOrientation= {Mesh.DOUBLESIDE}
+            rotation-x={-Math.PI / 2}
+            earcutInjection={Earcut}
+        >
+            <standardMaterial name={`${props.box.name}-mat`} diffuseColor={Color3.FromHexString(props.box.interiorColor)}
+                              specularColor={Color3.Black()}/>
+        </babylon-polygon>
+    )
+}
+
+const WallSideLeft = (props) => {
+    return (
+        <babylon-polygon
+            name={props.box.name}
+            shape={toWallSide(props.box)}
+            sideOrientation= {Mesh.DOUBLESIDE}
+            position={new Vector3(0, 0, 0)}
+            rotation-y={-Math.PI / 2}
+            rotation-x={-Math.PI / 2}
+            earcutInjection={Earcut}
+        >
+            <standardMaterial name={`${props.box.name}-mat`} diffuseColor={Color3.Green()}
+                              specularColor={Color3.Black()}/>
+        </babylon-polygon>
+    )
+}
+
+const WallSideRight = (props) => {
+    return (
+        <babylon-polygon
+            name={props.box.name}
+            shape={toWallSide(props.box)}
+            sideOrientation= {Mesh.DOUBLESIDE}
+            position={new Vector3(props.box.size.length, 0, 0)}
+            rotation-y={-Math.PI / 2}
+            rotation-x={-Math.PI / 2}
+            earcutInjection={Earcut}
+        >
+            <standardMaterial name={`${props.box.name}-mat`} diffuseColor={Color3.Green()}
                               specularColor={Color3.Black()}/>
         </babylon-polygon>
     )
@@ -110,43 +173,52 @@ const SpinningBox = (props) => {
 
     return (
         <mesh
+            name={props.box.id + "-mesh"}
             ref={boxRef}
             position={toScenePosition(props.box)}
             rotation-x={-Math.PI / 2}
             rotation-y={props.box.rotation * Math.PI / 180}>
             <InnerWall box={props.box} />
             <OuterWall box={props.box} />
+            <WallTop box={props.box} />
+            <WallBottom box={props.box} />
+            <WallSideLeft box={props.box} />
+            <WallSideRight box={props.box} />
         </mesh>
-
-    );
-
-
-    // return (<box name={props.name} ref={boxRef} position={props.position}
-    //              height={props.size.height} width={props.size.length} depth={props.size.width}>
-    //         <standardMaterial name={`${props.name}-mat`} diffuseColor={hovered ? props.hoveredColor : props.color}
-    //                           specularColor={Color3.Black()}/>
-    //         <pointerDragBehavior dragPlaneNormal={new Vector3(0, 1, 0)} validateDrag={validateDrag}/>
-    //     </box>
-    // );
+    )
 }
 
 export const SceneWithSpinningBoxes = (props) => {
     const {state, dispatch} = useContext(store);
 
+    const engineRef = useRef(null);
+
+    useEffect(() => {
+        if (engineRef.current) {
+            const resize = () => {
+                engineRef.current.engine.resize();
+            };
+            if (window) {
+                window.addEventListener("resize", resize);
+            }
+        }
+    })
 
     const boxes = state.boxes.map((box, i) =>
         <SpinningBox
             box={box}
             dispatch={dispatch}
             index={i}
+            key={box.id}
         />
     )
+
     return (
         // <div className="babylon-canvas">
-        <Engine antialias adaptToDeviceRatio canvasId='babylonJS'>
+        <Engine antialias adaptToDeviceRatio canvasId='babylonJS' ref={engineRef} >
             <Scene>
                 <arcRotateCamera name="camera1" target={new Vector3(4, 0, -3)} alpha={1.5 * Math.PI} beta={0}
-                                 radius={8}/>
+                                 radius={16}/>
                 <hemisphericLight name='light1' intensity={0.7} direction={Vector3.Up()}/>
                 <pointLight name="Omni" position={new Vector3(20, 100, 5)} />
                 <ground name='ground' width={GROUND_SIZE} height={GROUND_SIZE} subdivisions={1}>

@@ -17,3 +17,12 @@ body {
 .three-d-view {
     flex-grow: 5;
 }
+
+.three-d-view > canvas {
+    width: 600px;
+    height: 600px;
+}
+
+.two-dee-view {
+    flex-grow: 5;
+}
