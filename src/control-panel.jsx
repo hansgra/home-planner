@@ -38,7 +38,7 @@ const ControlPanel = (props) => {
     const {state, dispatch } = useContext(store);
 
 
-    const inputs = state.boxes.filter(box => box.id === state.selected).map((box, i) =>
+    const inputs = state.walls.filter(box => box.id === state.selected).map((box, i) =>
 		<div key={box.id}>
 		  <h4>{box.name}</h4>
 		  <div>

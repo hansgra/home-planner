@@ -9,7 +9,7 @@ export const KonvaScene = (props) => {
         <Stage width={600} height={600}>
             <Layer>
                 <Text text="Try to drag a star" />
-                {state.boxes.map((box, i) => (
+                {state.walls.map((box, i) => (
                     <Rect
                         key={box.id}
                         id={box.id}
